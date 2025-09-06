@@ -26,6 +26,17 @@ def check_python_version():
         print("   Please install a newer version of Python")
         sys.exit(1)
     print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor} detected")
+    
+    # Check for externally managed environment
+    if platform.system() == "Linux":
+        try:
+            result = subprocess.run([sys.executable, "-m", "pip", "--version"], 
+                                  capture_output=True, text=True)
+            if result.returncode != 0 and "externally-managed-environment" in result.stderr:
+                print("ℹ️  Externally managed Python environment detected")
+                print("   Will install packages to user directory if needed")
+        except:
+            pass
 
 
 def get_script_dir():
@@ -49,20 +60,74 @@ def install_packages(python_exe, script_dir):
     """Install required packages globally"""
     requirements_file = script_dir / "requirements.txt"
 
-    print("📦 Installing packages globally...")
+    print("📦 Installing packages...")
 
-    # Upgrade pip first
-    subprocess.run(
-        [str(python_exe), "-m", "pip", "install", "--upgrade", "pip"], check=True
-    )
+    try:
+        # Try to upgrade pip first
+        subprocess.run(
+            [str(python_exe), "-m", "pip", "install", "--upgrade", "pip"], 
+            check=True, capture_output=True
+        )
+        pip_upgraded = True
+    except subprocess.CalledProcessError:
+        # If system pip upgrade fails, try with --user flag
+        print("⚠️  System pip upgrade failed, trying user installation...")
+        try:
+            subprocess.run(
+                [str(python_exe), "-m", "pip", "install", "--user", "--upgrade", "pip"], 
+                check=True, capture_output=True
+            )
+            pip_upgraded = True
+        except subprocess.CalledProcessError:
+            print("⚠️  Pip upgrade failed, continuing with existing pip...")
+            pip_upgraded = False
 
-    # Install requirements globally
-    subprocess.run(
-        [str(python_exe), "-m", "pip", "install", "-r", str(requirements_file)],
-        check=True,
-    )
-
-    print("✅ Packages installed globally")
+    # Try installing packages
+    try:
+        # Try system-wide installation first
+        subprocess.run(
+            [str(python_exe), "-m", "pip", "install", "-r", str(requirements_file)],
+            check=True, capture_output=True
+        )
+        print("✅ Packages installed globally")
+        return
+    except subprocess.CalledProcessError:
+        pass
+    
+    try:
+        # If system installation fails, try user installation
+        print("⚠️  System installation failed, installing to user directory...")
+        subprocess.run(
+            [str(python_exe), "-m", "pip", "install", "--user", "-r", str(requirements_file)],
+            check=True, capture_output=True
+        )
+        print("✅ Packages installed to user directory")
+        return
+    except subprocess.CalledProcessError:
+        pass
+    
+    # If both fail, provide helpful error message
+    print("❌ Package installation failed!")
+    print("")
+    print("This may be due to an externally managed Python environment.")
+    print("Try one of these solutions:")
+    print("")
+    print("1. Use virtual environment installer (recommended):")
+    print("   python3 install_venv.py")
+    print("")
+    print("2. Use pipx (for application installation):")
+    print("   sudo apt install pipx")
+    print("   pipx install -e .")
+    print("")
+    print("3. Use system packages (if available):")
+    print("   sudo apt install python3-rich python3-cryptography python3-argon2")
+    print("")
+    print("4. Manual virtual environment:")
+    print("   python3 -m venv venv")
+    print("   source venv/bin/activate")
+    print("   pip install -r requirements.txt")
+    print("")
+    sys.exit(1)
 
 
 def create_executable_wrapper(script_dir, venv_path):

@@ -24,9 +24,32 @@ python install.py
 ./install.sh
 ```
 
+### If Installation Fails (Externally Managed Environment)
+
+On newer Linux distributions, you may encounter an "externally-managed-environment" error. Try these alternatives:
+
+#### Option 1: Virtual Environment (Recommended)
+```bash
+python3 install_venv.py
+```
+
+#### Option 2: User Installation
+```bash
+python3 -m pip install --user -r requirements.txt
+```
+
+#### Option 3: System Packages
+```bash
+# Ubuntu/Debian
+sudo apt install python3-rich python3-cryptography python3-argon2-cffi
+
+# Fedora
+sudo dnf install python3-rich python3-cryptography python3-argon2-cffi
+```
+
 ### Manual Installation Requirements
 - Python 3.8 or higher
-- On Linux: `python3-venv` package may be needed
+- pip (or pipx for isolated installation)
 
 ## Usage
 

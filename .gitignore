@@ -18,6 +18,7 @@ wheels/
 venv/
 env/
 ENV/
+passholder-env/
 
 # Database files (user data - should never be committed)
 *.db

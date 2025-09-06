@@ -18,6 +18,15 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
+# Check for externally managed environment and provide guidance
+echo "🔍 Checking Python environment..."
+if python3 -m pip --version &> /dev/null; then
+    echo "✅ pip is available"
+else
+    echo "⚠️  pip may not be available or environment is externally managed"
+    echo "   The installer will try user-local installation if needed"
+fi
+
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -48,6 +57,21 @@ if [ $? -eq 0 ]; then
     echo "Then you can use: passholder --help"
 else
     echo ""
-    echo "❌ Installation failed. Please check the error messages above."
+    echo "❌ Installation failed."
+    echo ""
+    echo "🔧 Troubleshooting options:"
+    echo ""
+    echo "1. Try virtual environment installation:"
+    echo "   python3 install_venv.py"
+    echo ""
+    echo "2. Try user installation:"
+    echo "   python3 -m pip install --user -r requirements.txt"
+    echo ""
+    echo "3. Install system packages (Ubuntu/Debian):"
+    echo "   sudo apt install python3-rich python3-cryptography python3-argon2-cffi"
+    echo ""
+    echo "4. Use pipx (if available):"
+    echo "   pipx install -e ."
+    echo ""
     exit 1
 fi
