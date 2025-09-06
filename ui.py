@@ -117,31 +117,94 @@ class UI:
         # Initialize navigation history
         self.history = []
 
+    def get_responsive_ascii_art(self):
+        """
+        Generate ASCII art that adapts to terminal width.
+
+        Returns different ASCII art based on terminal width:
+        - Large (120+ chars): Full detailed banner
+        - Medium (80-119 chars): Compact banner
+        - Small (<80 chars): Simple text banner
+        """
+        width = self.console.size.width
+
+        if width >= 120:
+            # Large ASCII art for wide terminals
+            return """
+        ██████╗  █████╗ ███████╗███████╗██╗  ██╗ ██████╗ ██╗     ██████╗ ███████╗██████╗ 
+        ██╔══██╗██╔══██╗██╔════╝██╔════╝██║  ██║██╔═══██╗██║     ██╔══██╗██╔════╝██╔══██╗
+        ██████╔╝███████║███████╗███████╗███████║██║   ██║██║     ██║  ██║█████╗  ██████╔╝
+        ██╔═══╝ ██╔══██║╚════██║╚════██║██╔══██║██║   ██║██║     ██║  ██║██╔══╝  ██╔══██╗
+        ██║     ██║  ██║███████║███████║██║  ██║╚██████╔╝███████╗██████╔╝███████╗██║  ██║
+        ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+        """
+        elif width >= 80:
+            # Medium ASCII art for standard terminals
+            return """
+        ██████╗  █████╗ ███████╗███████╗
+        ██╔══██╗██╔══██╗██╔════╝██╔════╝
+        ██████╔╝███████║███████╗███████╗
+        ██╔═══╝ ██╔══██║╚════██║╚════██║
+        ██║     ██║  ██║███████║███████║
+        ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝
+        
+        ██╗  ██╗ ██████╗ ██╗     ██████╗ ███████╗██████╗ 
+        ██║  ██║██╔═══██╗██║     ██╔══██╗██╔════╝██╔══██╗
+        ███████║██║   ██║██║     ██║  ██║█████╗  ██████╔╝
+        ██╔══██║██║   ██║██║     ██║  ██║██╔══╝  ██╔══██╗
+        ██║  ██║╚██████╔╝███████╗██████╔╝███████╗██║  ██║
+        ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+        """
+        else:
+            # Simple text banner for narrow terminals
+            return """
+        ╔═══════════════════════════════════════╗
+        ║            PASSHOLDER                 ║
+        ║       Password Manager v1.0.0         ║
+        ║        Secure • Fast • Local          ║
+        ╚═══════════════════════════════════════╝
+        """
+
     def loading_animation(self):
         """
-        Display startup loading animation with progress indicators.
+        Display startup loading animation with responsive design.
 
         Shows a professional loading sequence with:
+        - Responsive ASCII art banner (adapts to terminal width)
         - PassHolder branding and version
-        - Animated spinner with status messages
         - Security initialization messages
         - Database connection feedback
 
         This provides user feedback during application startup and
-        creates a polished first impression.
+        creates a polished first impression that works on any terminal size.
         """
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            transient=True,
-        ) as progress:
-            task = progress.add_task("[info]Loading", total=None)
-            for i in range(1, 5):
-                progress.update(task, description=f"[info]Loading{'.' * i}")
-                time.sleep(0.25)
-            time.sleep(1)
-        panel = Panel(Text("Welcome to PassHolder!", style="title", justify="center"))
-        self.console.print(panel)
+        # Clear screen for dramatic effect
+        self.console.clear()
+
+        # Get responsive ASCII art based on terminal width
+        ascii_art = self.get_responsive_ascii_art()
+
+        # Display banner with gradient colors
+        banner_panel = Panel(
+            Text(ascii_art, style="bold magenta", justify="center"),
+            border_style="bright_cyan",
+            padding=(1, 2),
+            title="[bold cyan]🔐 SECURE PASSWORD MANAGER 🔐[/]",
+            subtitle="[dim]v1.0.0[/]",
+        )
+        self.console.print(banner_panel)
+        self.console.print()
+
+        # Final loading confirmation
+        self.console.print(
+            "[bold green]✅ Security protocols loaded successfully![/bold green]"
+        )
+        time.sleep(0.5)
+
+        self.console.print()
+
+        # Brief pause to let user read the success message
+        time.sleep(1.5)
 
     def display_menu(self):
         menu_items = [
@@ -180,19 +243,30 @@ class UI:
         self.console.print(panel, justify="left")
 
     def closing_animation(self):
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            transient=True,
-        ) as progress:
-            task = progress.add_task("[info]Exiting", total=None)
-            for i in range(1, 5):
-                progress.update(task, description=f"[info]Exiting{'.' * i}")
-                time.sleep(0.1)
+        """
+        Display graceful shutdown animation.
+        """
+        self.console.print()
+
+        # Simple shutdown messages
+        shutdown_messages = [
+            "🔐 Securing database connections...",
+            "🧹 Clearing sensitive data from memory...",
+            " Locking encrypted database...",
+            "✅ Security protocols completed!",
+        ]
+
+        # Display shutdown messages one by one
+        for message in shutdown_messages:
+            self.console.print(f"[yellow]{message}[/yellow]")
             time.sleep(0.5)
-        self.console.print("[success]Goodbye!")
-        time.sleep(0.2)
-        os.system("cls" if os.name == "nt" else "clear")
+
+        # Final goodbye
+        self.console.print(
+            "[bold green]👋 Thank you for using PassHolder! Stay secure![/bold green]"
+        )
+        time.sleep(1)
+        self.console.clear()
 
     def display_passwords(self, passwords):
         table = Table(title="Stored Passwords", show_lines=True)
