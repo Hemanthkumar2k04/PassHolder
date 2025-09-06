@@ -130,7 +130,52 @@ echo $PATH | grep PassHolder
 /path/to/PassHolder/bin/passholder
 ```
 
-## 🔒 Security Architecture
+## � Updating PassHolder
+
+PassHolder includes automatic git configuration to prevent permission conflicts during updates.
+
+### Smooth Update Process
+
+```bash
+# Update to latest version
+git pull origin main
+
+# If you encounter permission conflicts, run:
+chmod +x install.sh setup-permissions.sh
+
+# Reinstall if needed (preserves your data)
+python3 install_venv.py
+```
+
+### Handling Permission Conflicts
+
+If you see git conflicts related to file permissions:
+
+```bash
+# Reset file permissions (Unix/Linux/macOS)
+git config core.filemode false
+chmod +x install.sh setup-permissions.sh
+
+# Then update
+git pull origin main
+```
+
+### Data Backup Before Updates
+
+Your encrypted database is safe during updates, but for extra security:
+
+```bash
+# Backup your data (optional)
+cp ~/passholder/secrets.db.enc ~/passholder_backup_$(date +%Y%m%d).db.enc
+```
+
+The installer automatically:
+- ✅ Configures git to ignore permission changes
+- ✅ Sets proper executable permissions for scripts
+- ✅ Preserves your existing password database
+- ✅ Updates dependencies and wrappers
+
+## �🔒 Security Architecture
 
 ### Encryption Details
 - **Algorithm**: Fernet (AES 256 in CBC mode with HMAC authentication)

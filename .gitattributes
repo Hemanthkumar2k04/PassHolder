@@ -1,0 +1,42 @@
+# Git Attributes Configuration for PassHolder
+# This file ensures consistent file handling across platforms
+
+# Ensure shell scripts maintain executable permissions
+*.sh text eol=lf
+install.sh text eol=lf
+
+# Python files should use LF line endings on all platforms
+*.py text eol=lf
+
+# Text files should use platform-specific line endings
+*.md text
+*.txt text
+*.rst text
+
+# Configuration files
+*.toml text eol=lf
+*.ini text
+*.cfg text
+*.conf text
+
+# Ensure these files are treated as binary (no line ending conversion)
+*.db binary
+*.enc binary
+*.key binary
+*.salt binary
+
+# Images and other binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Lock files should maintain exact format
+*.lock text eol=lf
+
+# Documentation files
+README* text
+LICENSE* text
+CHANGELOG* text

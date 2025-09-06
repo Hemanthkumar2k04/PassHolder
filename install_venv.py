@@ -155,6 +155,9 @@ def main():
             else:
                 print("✅ Alias already exists in ~/.zshrc")
 
+    # Configure git for smooth updates
+    setup_git_configuration(script_dir)
+
     print("\n" + "=" * 50)
     print("🎉 Virtual Environment Installation Complete!")
 
@@ -173,6 +176,49 @@ def main():
         print("   passholder --help")
         print("   passholder add")
         print("   passholder view")
+
+
+def setup_git_configuration(script_dir):
+    """Configure git settings to prevent permission conflicts during updates"""
+    try:
+        print("🔧 Configuring git for smooth updates...")
+        
+        # Check if this is a git repository
+        git_dir = script_dir / ".git"
+        if not git_dir.exists():
+            print("ℹ️  Not a git repository, skipping git configuration")
+            return
+        
+        # Set up git to ignore permission changes (Unix systems only)
+        if platform.system() != "Windows":
+            try:
+                subprocess.run(
+                    ["git", "config", "core.filemode", "false"],
+                    cwd=script_dir,
+                    check=True,
+                    capture_output=True
+                )
+                print("✅ Git configured to ignore file mode changes")
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                print("⚠️  Could not configure git (git not found or not a repo)")
+        
+        # Set up proper permissions for shell scripts (Unix systems)
+        if platform.system() != "Windows":
+            install_sh = script_dir / "install.sh"
+            setup_permissions = script_dir / "setup-permissions.sh"
+            
+            for script_file in [install_sh, setup_permissions]:
+                if script_file.exists():
+                    try:
+                        script_file.chmod(0o755)
+                        print(f"✅ Made {script_file.name} executable")
+                    except OSError:
+                        print(f"⚠️  Could not set permissions for {script_file.name}")
+        
+        print("✅ Git configuration completed")
+        
+    except Exception as e:
+        print(f"⚠️  Git configuration warning: {e}")
 
 
 if __name__ == "__main__":
