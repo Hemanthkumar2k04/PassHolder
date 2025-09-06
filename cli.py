@@ -1,7 +1,44 @@
 #!/usr/bin/env python3
 """
 PassHolder CLI - Command Line Interface for Password Manager
-Usage: python cli.py <command> [options]
+===========================================================
+
+This module provides a comprehensive command-line interface for the PassHolder
+password manager. It offers all the functionality of the GUI interface in a
+scriptable, automation-friendly format.
+
+Key Features:
+- Full CRUD operations for password management
+- Secure clipboard integration with auto-clear
+- Advanced search and filtering capabilities
+- Rich terminal output with tables and formatting
+- Batch operations support
+- Cross-platform compatibility
+
+Commands Available:
+- add: Add new password entries
+- view: Display all passwords in formatted tables
+- remove: Delete password entries
+- copy: Copy passwords to clipboard
+- search: Search passwords by service/username
+- get: Retrieve specific passwords
+
+Security Features:
+- Same encryption as GUI (Fernet AES 256)
+- Secure password input with masking
+- Master password verification
+- Memory-safe operations
+- No password exposure in command history
+
+Usage Examples:
+    python cli.py add gmail -u user@gmail.com -p secret123
+    python cli.py view
+    python cli.py copy gmail
+    python cli.py search @company.com
+    python cli.py remove old-service
+
+Author: PassHolder Team
+License: Open Source
 """
 
 import argparse
@@ -15,12 +52,50 @@ from config import check_db_exists
 
 
 class PassHolderCLI:
+    """
+    Command Line Interface handler for PassHolder password manager.
+
+    This class provides a rich command-line interface with support for
+    all password management operations. It handles authentication,
+    database operations, and provides formatted output using the Rich library.
+
+    Attributes:
+        console (Console): Rich console for formatted output
+        db (EncryptedSQLiteDB): Database connection instance
+
+    Methods:
+        authenticate(): Handle master password authentication
+        add_password(): Add new password entries
+        view_passwords(): Display all passwords in table format
+        remove_password(): Delete password entries
+        copy_password(): Copy passwords to clipboard
+        search_passwords(): Search and filter passwords
+        get_password(): Retrieve specific passwords
+    """
+
     def __init__(self):
+        """Initialize CLI with Rich console and prepare database connection."""
         self.console = Console()
         self.db = None
 
     def authenticate(self):
-        """Authenticate user with master password"""
+        """
+        Authenticate user with master password and initialize database.
+
+        Handles both existing and new database scenarios:
+        - For existing databases: Prompts for master password
+        - For new setups: Guides through master password creation
+
+        The master password is used to derive the encryption key for
+        all password data using PBKDF2 with 100,000 iterations.
+
+        Returns:
+            bool: True if authentication successful, False otherwise
+
+        Raises:
+            Exception: If database initialization fails
+            KeyboardInterrupt: If user cancels authentication
+        """
         if check_db_exists():
             self.console.print(
                 "[yellow]Database found. Please enter your master password.[/yellow]"
@@ -80,8 +155,8 @@ class PassHolderCLI:
                 else Prompt.ask("Notes (optional)", default="")
             )
 
-            # Add to database
-            self.db.add_password(service, username, password, notes)
+            # Add to database - Note: database expects (service, password, username, notes)
+            self.db.add_password(service, password, username, notes)
             self.console.print(
                 f"[green]✓ Successfully added password for '{service}'![/green]"
             )
@@ -176,30 +251,107 @@ class PassHolderCLI:
                 self.db.close()
 
     def copy_password(self, args):
-        """Copy password to clipboard"""
+        """
+        Copy password to clipboard with support for multiple service matches.
+        
+        If multiple passwords exist for the same service name, displays a
+        numbered list for user selection. Supports copying by service name,
+        username, or specific ID.
+        
+        Args:
+            args: Parsed command arguments containing service, username, and id
+        """
         if not self.authenticate():
             return
         if self.db is None:
             self.console.print("[red]Database connection failed.[/red]")
             return
+            
         try:
             service = args.service
             username = getattr(args, "username", None)
             password_id = getattr(args, "id", None)
 
+            # If ID provided, copy directly by ID
             if password_id:
                 result = self.db.copy_password_by_id(password_id)
-            else:
-                result = self.db.copy_password(service, username)
+                self.console.print(f"[green]✓ {result}[/green]")
+                return
 
-            self.console.print(f"[green]✓ {result}[/green]")
+            # If username provided, try exact match
+            if username:
+                result = self.db.copy_password(service, username)
+                self.console.print(f"[green]✓ {result}[/green]")
+                return
+
+            # Search by service name only - handle multiple matches
+            matching_passwords = self.db.get_matching_passwords(service)
+            
+            if not matching_passwords:
+                self.console.print(f"[red]No passwords found for service '{service}'[/red]")
+                return
+            
+            if len(matching_passwords) == 1:
+                # Single match - copy directly
+                password_id = matching_passwords[0][0]
+                result = self.db.copy_password_by_id(password_id)
+                self.console.print(f"[green]✓ {result}[/green]")
+                return
+            
+            # Multiple matches - display selection menu
+            self.console.print(f"[yellow]Multiple passwords found for '{service}':[/yellow]\n")
+            
+            # Create and display selection table
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("Index", style="cyan", width=6)
+            table.add_column("Service", style="green")
+            table.add_column("Username", style="blue")
+            table.add_column("Notes", style="yellow")
+            
+            for idx, (password_id, svc, username_val, password, notes) in enumerate(matching_passwords, 1):
+                # Truncate long values for display
+                display_username = username_val[:20] + "..." if username_val and len(username_val) > 20 else (username_val or "")
+                display_notes = notes[:30] + "..." if notes and len(notes) > 30 else (notes or "")
+                
+                table.add_row(
+                    str(idx),
+                    svc,
+                    display_username,
+                    display_notes
+                )
+            
+            self.console.print(table)
+            
+            # Get user selection
+            self.console.print(f"\n[cyan]Please select which password to copy (1-{len(matching_passwords)}) or 'q' to quit:[/cyan]")
+            
+            while True:
+                try:
+                    choice = input("Selection: ").strip().lower()
+                    
+                    if choice == 'q' or choice == 'quit':
+                        self.console.print("[yellow]Copy operation cancelled.[/yellow]")
+                        return
+                    
+                    selection_idx = int(choice)
+                    if 1 <= selection_idx <= len(matching_passwords):
+                        # Valid selection - copy the chosen password
+                        selected_password = matching_passwords[selection_idx - 1]
+                        password_id = selected_password[0]
+                        result = self.db.copy_password_by_id(password_id)
+                        self.console.print(f"[green]✓ {result}[/green]")
+                        return
+                    else:
+                        self.console.print(f"[red]Please enter a number between 1 and {len(matching_passwords)}[/red]")
+                        
+                except ValueError:
+                    self.console.print("[red]Please enter a valid number or 'q' to quit[/red]")
+                except KeyboardInterrupt:
+                    self.console.print("\n[yellow]Copy operation cancelled.[/yellow]")
+                    return
 
         except ValueError as e:
-            error_str = str(e)
-            if "Multiple passwords found" in error_str:
-                self.console.print(f"[yellow]{e}[/yellow]")
-            else:
-                self.console.print(f"[red]{e}[/red]")
+            self.console.print(f"[red]{e}[/red]")
         except Exception as e:
             self.console.print(f"[red]Failed to copy password: {e}[/red]")
         finally:

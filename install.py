@@ -1,7 +1,52 @@
 #!/usr/bin/env python3
 """
-PassHolder Installation Script
-Cross-platform installer for PassHolder password manager
+PassHolder Cross-Platform Installation Script
+=============================================
+
+Universal installer for the PassHolder password manager that provides
+intelligent package management across different platforms and Python
+environments. Handles modern Linux restrictions, Windows permissions,
+and macOS security requirements automatically.
+
+Key Features:
+- Automatic Python version validation
+- Multi-tier package installation strategy
+- Cross-platform executable wrapper creation
+- Intelligent environment detection
+- Comprehensive error handling and user guidance
+- Fallback options for restricted environments
+
+Installation Strategy:
+1. Global package installation (preferred)
+2. User-level installation (fallback)
+3. Virtual environment creation (last resort)
+4. System package recommendations (if all fail)
+
+Supported Platforms:
+- Windows 10+ with PowerShell/Command Prompt
+- Linux distributions (Ubuntu, Fedora, Arch, etc.)
+- macOS 10.14+ with Homebrew support
+- Python 3.8+ required on all platforms
+
+Security Considerations:
+- Validates Python installation integrity
+- Checks for pip availability and security
+- Creates secure wrapper scripts with proper permissions
+- Handles externally-managed environment restrictions
+- Provides secure fallback options
+
+Error Handling:
+- Graceful handling of permission errors
+- Clear user feedback for each installation step
+- Comprehensive troubleshooting guidance
+- Automatic fallback to alternative methods
+
+Usage:
+    python install.py           # Standard installation
+    python install.py --help    # Show detailed options
+
+Author: PassHolder Team
+License: Open Source
 """
 
 import os
@@ -11,12 +56,38 @@ import subprocess
 import shutil
 from pathlib import Path
 
-# Minimum Python version required
+# === Installation Requirements ===
+
+# Minimum Python version required for security and compatibility
 MIN_PYTHON_VERSION = (3, 8)
+
+# Required packages with minimum versions for security
+REQUIRED_PACKAGES = [
+    "rich>=14.1.0",  # Terminal UI framework
+    "cryptography>=41.0.0",  # Encryption library
+    "argon2-cffi>=25.1.0",  # Password hashing
+    "pyperclip>=1.8.0",  # Clipboard integration
+]
 
 
 def check_python_version():
-    """Check if Python version meets minimum requirements"""
+    """
+    Validate Python version meets minimum security and compatibility requirements.
+
+    PassHolder requires Python 3.8+ for:
+    - Modern cryptography library support
+    - pathlib enhancements for cross-platform paths
+    - Security improvements in subprocess handling
+    - Rich library compatibility
+
+    Raises:
+        SystemExit: If Python version is insufficient
+
+    Security Note:
+        Older Python versions have known security vulnerabilities
+        and lack modern cryptographic features required for secure
+        password management.
+    """
     current_version = sys.version_info[:2]
     if current_version < MIN_PYTHON_VERSION:
         print(
@@ -24,10 +95,11 @@ def check_python_version():
         )
         print(f"   Current version: {sys.version_info.major}.{sys.version_info.minor}")
         print("   Please install a newer version of Python")
+        print("\n📥 Download from: https://www.python.org/downloads/")
         sys.exit(1)
     print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor} detected")
 
-    # Check for externally managed environment
+    # Check for externally managed environment (common on modern Linux)
     if platform.system() == "Linux":
         try:
             result = subprocess.run(

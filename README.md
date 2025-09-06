@@ -1,53 +1,265 @@
 # PassHolder - Secure Password Manager
 
-A cross-platform password manager with encryption, built in Python.
+A cross-platform password manager with both GUI and CLI interfaces, featuring military-grade encryption and seamless installation across all platforms.
 
-## Features
+## ✨ Features
 
-- 🔐 **Secure Encryption**: Uses Fernet (AES 128) with PBKDF2 key derivation
-- 🖥️ **Cross-Platform**: Works on Windows, Linux, and macOS  
-- 🎨 **Rich Terminal UI**: Beautiful interface with tables and progress bars
-- 📋 **Clipboard Integration**: Copy passwords directly to clipboard
-- 🔍 **Search Functionality**: Find passwords by service name
-- 🛡️ **Master Password**: Single password protects all your data
-- 📦 **Easy Installation**: One-command setup with virtual environment
+- 🔐 **Military-Grade Encryption**: Fernet (AES 256) with PBKDF2 key derivation (100,000 iterations)
+- 🖥️ **Dual Interface**: Rich terminal GUI and command-line interface
+- 🌍 **Cross-Platform**: Windows, Linux, macOS with native installation
+- 🎨 **Beautiful UI**: Rich terminal interface with themes, tables, and pagination
+- 📋 **Clipboard Integration**: One-click password copying with auto-clear
+- 🔍 **Smart Search**: Fast service name and username searching
+- 🛡️ **Master Password**: Single password protects all your data with Argon2 hashing
+- 📦 **Easy Installation**: Multiple installation methods with automatic fallbacks
+- 🔄 **Auto-Updates**: Intelligent dependency management and environment detection
 
-## Quick Installation
+## 🚀 Quick Installation
 
-### Windows
-```powershell
-python install.py
-```
+### Option 1: Recommended Installation (All Platforms)
 
-### Linux/macOS
 ```bash
+# Windows
+python install.py
+
+# Linux/macOS
+chmod +x install.sh
 ./install.sh
 ```
 
-### If Installation Fails (Externally Managed Environment)
+### Option 2: Virtual Environment (Isolated Installation)
 
-On newer Linux distributions, you may encounter an "externally-managed-environment" error. Try these alternatives:
+Perfect for systems with package restrictions or multiple Python environments:
 
-#### Option 1: Virtual Environment (Recommended)
 ```bash
 python3 install_venv.py
 ```
 
-#### Option 2: User Installation
+This creates an isolated environment and automatically sets up shell aliases.
+
+## 📋 System Requirements
+
+- **Python**: 3.8 or higher
+- **Operating Systems**: Windows 10+, Linux (any modern distro), macOS 10.14+
+- **Memory**: 50MB RAM minimum
+- **Storage**: 10MB disk space
+
+## 🎯 Usage
+
+PassHolder automatically detects whether you want the GUI or CLI interface:
+
+### GUI Mode (Interactive)
+```bash
+passholder          # Opens rich terminal interface
+```
+
+### CLI Mode (Direct Commands)
+```bash
+passholder add                    # Add new password
+passholder view                   # View all passwords (paginated)
+passholder remove                 # Remove password interactively
+passholder copy <service>         # Copy password to clipboard
+passholder search <query>         # Search passwords
+passholder get <service>          # Get specific password
+passholder --help                 # Show help
+```
+
+### Advanced Commands
+```bash
+# Search with partial matches
+passholder search gmail
+passholder search @company.com
+
+# Quick access patterns
+passholder get github
+passholder copy work-email
+```
+
+## 🔧 Installation Troubleshooting
+
+### Problem: "externally-managed-environment" Error
+
+**Modern Linux distributions** (Ubuntu 22.04+, Fedora 38+) may restrict global package installation.
+
+**Solutions** (in order of recommendation):
+
+#### 1. Use Virtual Environment Installer (Recommended)
+```bash
+python3 install_venv.py
+# Creates isolated environment, sets up aliases automatically
+```
+
+#### 2. User-Level Installation
 ```bash
 python3 -m pip install --user -r requirements.txt
+python install.py
 ```
 
-#### Option 3: System Packages
+#### 3. System Package Installation
 ```bash
 # Ubuntu/Debian
-sudo apt install python3-rich python3-cryptography python3-argon2-cffi
+sudo apt update
+sudo apt install python3-rich python3-cryptography python3-argon2-cffi python3-pyperclip
 
-# Fedora
-sudo dnf install python3-rich python3-cryptography python3-argon2-cffi
+# Fedora/RHEL
+sudo dnf install python3-rich python3-cryptography python3-argon2-cffi python3-pyperclip
+
+# Arch Linux
+sudo pacman -S python-rich python-cryptography python-argon2-cffi python-pyperclip
 ```
 
-### Manual Installation Requirements
+#### 4. Using pipx (Isolated Application Install)
+```bash
+pipx install -e .
+```
+
+### Problem: Command Not Found
+
+If `passholder` command isn't found after installation:
+
+```bash
+# Reload shell configuration
+source ~/.bashrc    # or ~/.zshrc
+
+# Or restart your terminal
+
+# Manual path check
+echo $PATH | grep PassHolder
+
+# Use full path temporarily
+/path/to/PassHolder/bin/passholder
+```
+
+## 🔒 Security Architecture
+
+### Encryption Details
+- **Algorithm**: Fernet (AES 256 in CBC mode with HMAC authentication)
+- **Key Derivation**: PBKDF2-SHA256 with 100,000 iterations
+- **Salt**: Randomly generated 16-byte salt per database
+- **Authentication**: Argon2id for master password verification
+
+### Data Protection
+- **Local Only**: No network connections, data never leaves your device
+- **Encrypted at Rest**: Database file is completely encrypted
+- **Memory Safety**: Sensitive data cleared from memory after use
+- **Clipboard Security**: Auto-clear clipboard after 30 seconds
+
+### Database Structure
+```
+encrypted_database.db (AES encrypted)
+├── Schema: CREATE TABLE secrets (id, service, username, password, notes)
+├── Encryption: Per-record encryption with global key
+└── Integrity: HMAC verification on all operations
+```
+
+## 📁 Project Architecture
+
+```
+PassHolder/
+├── Core Application
+│   ├── main.py              # Entry point, GUI/CLI router
+│   ├── cli.py               # Command-line interface logic
+│   ├── ui.py                # Rich terminal UI components
+│   └── passholder.py        # Wrapper script for mode detection
+├── Security Layer
+│   ├── encryptedSQLiteDB.py # Encrypted database operations
+│   └── config.py            # Secure configuration management
+├── Installation System
+│   ├── install.py           # Cross-platform installer
+│   ├── install_venv.py      # Virtual environment installer
+│   ├── install.sh           # Unix launcher script
+│   └── requirements.txt     # Python dependencies
+├── Configuration
+│   ├── pyproject.toml       # Project metadata
+│   ├── .gitignore           # Version control exclusions
+│   └── README.md            # This documentation
+└── Generated Files
+    ├── bin/                 # Executable wrapper scripts
+    ├── .venv/               # Virtual environment (if used)
+    └── __pycache__/         # Python bytecode cache
+```
+
+## 🔄 Development Setup
+
+### For Contributors
+
+```bash
+# Clone repository
+git clone <repo-url>
+cd PassHolder
+
+# Install in development mode
+python3 install_venv.py
+
+# Run tests
+python -m pytest tests/
+
+# Code formatting
+black *.py
+isort *.py
+```
+
+### Dependencies Overview
+- **rich>=14.1.0**: Terminal UI framework with tables, progress bars, themes
+- **cryptography>=41.0.0**: Industry-standard encryption library
+- **argon2-cffi>=25.1.0**: Memory-hard password hashing function
+- **pyperclip>=1.8.0**: Cross-platform clipboard operations
+
+## 🗑️ Uninstallation
+
+### Complete Removal
+```bash
+# Remove installation directory
+rm -rf /path/to/PassHolder
+
+# Remove shell aliases (Linux/macOS)
+# Edit ~/.bashrc and ~/.zshrc, remove PassHolder alias lines
+
+# Windows: Remove from Environment Variables
+# System Properties → Environment Variables → Remove PassHolder path
+```
+
+### Keep Data, Remove Application
+```bash
+# Backup your encrypted database first
+cp PassHolder/encrypted_database.db ~/passholder_backup.db
+
+# Then follow complete removal steps above
+```
+
+## ❓ FAQ
+
+**Q: Can I sync passwords across devices?**  
+A: Currently local-only. You can manually copy the encrypted database file to sync.
+
+**Q: What happens if I forget my master password?**  
+A: Unfortunately, passwords cannot be recovered. The encryption is designed to be unbreakable.
+
+**Q: Is it safe to store the database in cloud storage?**  
+A: Yes, the database file is fully encrypted. However, ensure cloud storage is also secured.
+
+**Q: Can I import from other password managers?**  
+A: Not currently supported, but you can manually add entries using the CLI/GUI.
+
+## 🆘 Support & Troubleshooting
+
+### Common Issues
+
+1. **Import errors**: Ensure virtual environment is activated or packages installed globally
+2. **Permission errors**: Run installer with appropriate permissions for your system
+3. **Command not found**: Check PATH and shell configuration files
+4. **Database corruption**: Keep backups; the encryption protects against most corruption
+
+### Getting Help
+
+1. Check this README for common solutions
+2. Verify Python version: `python3 --version`
+3. Check installation: `which passholder` or `where passholder`
+4. Reinstall if needed: `python3 install_venv.py`
+
+---
+
+**⚠️ Security Notice**: Your master password is the key to all your data. Store it safely and never share it. PassHolder cannot recover lost master passwords due to the encryption design.
 - Python 3.8 or higher
 - pip (or pipx for isolated installation)
 

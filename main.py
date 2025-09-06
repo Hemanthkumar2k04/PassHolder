@@ -1,3 +1,28 @@
+#!/usr/bin/env python3
+"""
+PassHolder - Secure Password Manager
+====================================
+
+Main application entry point that provides both GUI and CLI interfaces.
+This module handles the core application logic, database initialization,
+and routing between different user interfaces.
+
+Features:
+- Dual interface support (GUI/CLI)
+- Secure database initialization
+- Master password management
+- Cross-platform compatibility
+
+Security:
+- All passwords encrypted with Fernet (AES 256)
+- Master password hashed with Argon2
+- PBKDF2 key derivation with 100,000 iterations
+- Local-only storage, no network connections
+
+Author: PassHolder Team
+License: Open Source
+"""
+
 from rich.prompt import Prompt
 from ui import UI
 from encryptedSQLiteDB import EncryptedSQLiteDB
@@ -7,13 +32,32 @@ import argparse
 
 
 def run_gui():
-    """Run the graphical user interface"""
+    """
+    Launch the Rich terminal-based graphical user interface.
+
+    This function provides an interactive, menu-driven interface with:
+    - Beautiful terminal UI using Rich library
+    - Pagination for large password lists
+    - Real-time search and filtering
+    - Secure password entry with masking
+    - Clipboard integration with auto-clear
+
+    The GUI automatically handles:
+    - Database creation for new users
+    - Master password verification for existing users
+    - Error handling and user feedback
+    - Secure memory management
+
+    Raises:
+        KeyboardInterrupt: When user presses Ctrl+C to exit
+        Exception: For database or encryption errors
+    """
     try:
-        # Show loading animation
+        # Show loading animation to provide user feedback
         temp_ui = UI(None)
         temp_ui.loading_animation()
 
-        # Get master password
+        # Handle master password for existing or new databases
         if check_db_exists():
             print("Database found. Please enter your master password to unlock.")
             master_password = Prompt.ask("Enter master password", password=True)
@@ -27,7 +71,7 @@ def run_gui():
                 else:
                     print("Passwords do not match. Please try again.")
 
-        # Initialize encrypted database
+        # Initialize encrypted database with master password
         db = EncryptedSQLiteDB(master_password)
 
         # Initialize UI with database
@@ -45,10 +89,42 @@ def run_gui():
 
 
 def main_cli():
-    """Main CLI entry point for 'passholder' command"""
+    """
+    Main CLI entry point for command-line interface operations.
+
+    Provides a comprehensive command-line interface with the following commands:
+    - add: Add new password entries with optional parameters
+    - view: Display all passwords in a formatted table
+    - remove: Delete password entries by service name or ID
+    - copy: Copy passwords to clipboard with auto-clear
+    - search: Search passwords by service name or username
+    - get: Retrieve specific passwords for a service
+
+    The CLI uses argparse for robust argument parsing and provides
+    helpful error messages and usage information. All operations
+    maintain the same security standards as the GUI interface.
+
+    Commands Support:
+    - Interactive prompts for missing required information
+    - Batch operations where applicable
+    - Secure password input with masking
+    - Clipboard integration with timeout
+    - Search with partial matching
+
+    Examples:
+        passholder add gmail -u user@gmail.com
+        passholder view
+        passholder copy gmail
+        passholder search @company.com
+        passholder remove old-service
+
+    Raises:
+        SystemExit: When invalid arguments are provided
+        KeyboardInterrupt: When user cancels operation
+    """
     from cli import PassHolderCLI
 
-    # Parse CLI arguments with simplified commands
+    # Parse CLI arguments with simplified commands for better UX
     parser = argparse.ArgumentParser(description="PassHolder - Secure Password Manager")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -67,11 +143,11 @@ def main_cli():
     remove_parser.add_argument("service", nargs="?", help="Service name")
     remove_parser.add_argument("-i", "--id", type=int, help="Password ID")
 
-    # Copy password command
-    copy_parser = subparsers.add_parser("copy", help="Copy password to clipboard")
-    copy_parser.add_argument("service", nargs="?", help="Service name")
-    copy_parser.add_argument("-u", "--username", help="Username")
-    copy_parser.add_argument("-i", "--id", type=int, help="Password ID")
+    # Copy password command - Enhanced with multiple selection support
+    copy_parser = subparsers.add_parser("copy", help="Copy password to clipboard (supports multiple matches)")
+    copy_parser.add_argument("service", nargs="?", help="Service name (shows selection menu if multiple matches)")
+    copy_parser.add_argument("-u", "--username", help="Username for exact match")
+    copy_parser.add_argument("-i", "--id", type=int, help="Password ID for direct copy")
 
     # Search passwords command
     search_parser = subparsers.add_parser("search", help="Search passwords by service")

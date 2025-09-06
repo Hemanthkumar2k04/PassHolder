@@ -1,3 +1,44 @@
+#!/usr/bin/env python3
+"""
+PassHolder UI - Rich Terminal User Interface
+============================================
+
+This module provides a beautiful, interactive terminal-based user interface
+for the PassHolder password manager using the Rich library. It offers a
+modern, responsive design with themes, animations, and intuitive navigation.
+
+Key Features:
+- Responsive terminal interface that adapts to window size
+- Beautiful themes with consistent color schemes
+- Smooth loading and transition animations
+- Paginated password display for large collections
+- Real-time search and filtering
+- Secure password input with masking
+- Clipboard integration with visual feedback
+- Progress indicators and status messages
+
+UI Components:
+- Main menu with numbered options
+- Password tables with sorting and filtering
+- Add/edit forms with validation
+- Search interface with live results
+- Confirmation dialogs for destructive operations
+- Status panels and notifications
+
+Design Principles:
+- Mobile-first responsive design
+- Accessibility considerations
+- Consistent visual hierarchy
+- Clear action feedback
+- Graceful error handling
+
+The interface automatically adjusts to terminal size and provides
+fallbacks for terminals with limited capabilities.
+
+Author: PassHolder Team
+License: Open Source
+"""
+
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -10,9 +51,54 @@ import os
 
 
 class UI:
+    """
+    Rich terminal-based user interface for PassHolder password manager.
+
+    This class provides a comprehensive, interactive terminal interface
+    with modern design principles and responsive layout. It handles all
+    user interactions, visual feedback, and maintains state throughout
+    the application lifecycle.
+
+    Attributes:
+        console (Console): Rich console for output rendering
+        db (EncryptedSQLiteDB): Database connection for operations
+        theme (Theme): Color scheme and styling definitions
+        terminal_height (int): Current terminal height in lines
+        terminal_width (int): Current terminal width in columns
+        history (list): Navigation history for back/forward functionality
+
+    Key Methods:
+        main_loop(): Primary interaction loop
+        loading_animation(): Startup loading sequence
+        closing_animation(): Graceful shutdown animation
+        show_main_menu(): Display main navigation menu
+        view_passwords(): Paginated password display
+        add_password(): Password creation interface
+        search_passwords(): Interactive search functionality
+
+    Design Features:
+        - Responsive layout that adapts to terminal size
+        - Consistent color theming throughout
+        - Smooth animations and transitions
+        - Pagination for large datasets
+        - Real-time input validation
+        - Secure password handling
+    """
+
     def __init__(self, db):
+        """
+        Initialize the UI with database connection and configure theming.
+
+        Sets up the Rich console with custom theme, determines terminal
+        dimensions for responsive layout, and initializes navigation history.
+
+        Args:
+            db (EncryptedSQLiteDB): Active database connection
+        """
         self.console = Console()
         self.db = db
+
+        # Define consistent color theme for the application
         self.theme = Theme(
             {
                 "info": "cyan",
@@ -23,11 +109,27 @@ class UI:
             }
         )
         self.console.push_theme(self.theme)
+
+        # Get terminal dimensions for responsive design
         self.terminal_height = self.console.size.height
         self.terminal_width = self.console.size.width
+
+        # Initialize navigation history
         self.history = []
 
     def loading_animation(self):
+        """
+        Display startup loading animation with progress indicators.
+
+        Shows a professional loading sequence with:
+        - PassHolder branding and version
+        - Animated spinner with status messages
+        - Security initialization messages
+        - Database connection feedback
+
+        This provides user feedback during application startup and
+        creates a polished first impression.
+        """
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),

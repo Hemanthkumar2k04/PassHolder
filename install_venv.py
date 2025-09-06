@@ -1,7 +1,50 @@
 #!/usr/bin/env python3
 """
 PassHolder Virtual Environment Installation Script
-For systems with externally managed Python environments
+==================================================
+
+Specialized installer for systems with externally-managed Python environments.
+This script creates an isolated virtual environment for PassHolder, ensuring
+complete dependency isolation and compatibility with modern Linux distributions
+that restrict global package installation.
+
+Key Features:
+- Creates isolated Python virtual environment
+- Installs all dependencies without system conflicts
+- Generates cross-platform wrapper scripts
+- Automatically configures shell aliases (Unix systems)
+- Handles permission restrictions gracefully
+- Works on systems where global pip installation fails
+
+Target Use Cases:
+- Modern Linux distributions (Ubuntu 22.04+, Fedora 38+)
+- Systems with externally-managed-environment restrictions
+- Corporate environments with restricted Python access
+- Development setups requiring isolation
+- Multi-user systems requiring per-user installations
+
+Installation Process:
+1. Creates .venv directory in project folder
+2. Installs Python packages in isolation
+3. Creates platform-specific wrapper scripts
+4. Sets up shell aliases for easy access (Unix)
+5. Provides clear usage instructions
+
+Benefits:
+- Zero conflict with system Python packages
+- Complete dependency isolation
+- Easy uninstallation (just delete project folder)
+- No administrator privileges required
+- Consistent behavior across platforms
+
+Security Features:
+- Isolated package installation
+- Secure wrapper script generation
+- Proper file permissions on Unix systems
+- No global system modifications
+
+Author: PassHolder Team
+License: Open Source
 """
 
 import os

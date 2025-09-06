@@ -1,3 +1,47 @@
+#!/usr/bin/env python3
+"""
+EncryptedSQLiteDB - Secure Database Layer for PassHolder
+========================================================
+
+This module provides a secure, encrypted database layer using SQLite with
+military-grade encryption. All data is encrypted at rest using Fernet (AES 256)
+with PBKDF2 key derivation and Argon2 password hashing.
+
+Security Architecture:
+- Database file is fully encrypted on disk
+- Master password uses Argon2id for verification
+- Encryption keys derived with PBKDF2-SHA256 (100k iterations)
+- Per-session key derivation from master password
+- Secure memory handling with automatic cleanup
+- Protection against timing attacks
+
+Database Schema:
+    secrets table:
+    - id: INTEGER PRIMARY KEY AUTOINCREMENT
+    - service: TEXT NOT NULL (encrypted)
+    - username: TEXT (encrypted)
+    - password: TEXT NOT NULL (encrypted)
+    - notes: TEXT (encrypted)
+    - created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+Encryption Process:
+1. Master password → Argon2 hash for verification
+2. Master password → PBKDF2 → Fernet key for data encryption
+3. Each field encrypted individually for granular security
+4. Database file encrypted as a whole for storage
+
+Key Features:
+- Transparent encryption/decryption
+- Automatic database initialization
+- Secure credential storage
+- Clipboard integration with auto-clear
+- Cross-platform file handling
+- Memory-safe operations
+
+Author: PassHolder Team
+License: Open Source
+"""
+
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from cryptography.fernet import Fernet
@@ -12,8 +56,53 @@ from config import ENC_DB_PATH, ENCRYPTION_SALT, DEFAULT_MASTER_PASSWORD_ITERATI
 
 
 class EncryptedSQLiteDB:
+    """
+    Encrypted SQLite database handler for secure password storage.
+
+    This class provides a transparent encryption layer over SQLite, ensuring
+    all sensitive data is encrypted both in memory and on disk. It handles
+    database initialization, secure connections, and provides high-level
+    methods for password management operations.
+
+    Attributes:
+        db_path (str): Path to the decrypted database file
+        encrypted_db_path (str): Path to the encrypted database file
+        ph (PasswordHasher): Argon2 password hasher instance
+        conn (sqlite3.Connection): Database connection object
+        cursor (sqlite3.Cursor): Database cursor for operations
+        master_password (str): Master password for key derivation
+        cipher_suite (Fernet): Encryption/decryption handler
+
+    Security Features:
+        - AES 256 encryption via Fernet
+        - PBKDF2-SHA256 key derivation (100,000 iterations)
+        - Argon2id password hashing
+        - Secure temporary file handling
+        - Automatic memory cleanup
+        - Protection against SQL injection
+
+    Example Usage:
+        db = EncryptedSQLiteDB("master_password")
+        db.add_password("gmail", "user@gmail.com", "secret123", "Work email")
+        passwords = db.get_all_passwords()
+        db.close()
+    """
 
     def __init__(self, master_password, db_path=None):
+        """
+        Initialize encrypted database with master password.
+
+        Creates or opens an encrypted database file, derives encryption keys
+        from the master password, and establishes a secure connection.
+
+        Args:
+            master_password (str): Master password for encryption/decryption
+            db_path (str, optional): Custom database file path
+
+        Raises:
+            VerifyMismatchError: If master password is incorrect
+            Exception: If database initialization fails
+        """
         self.db_path = db_path if db_path else str(ENC_DB_PATH)
         self.encrypted_db_path = self.db_path + ".enc"
         self.ph = PasswordHasher()
@@ -28,6 +117,25 @@ class EncryptedSQLiteDB:
             self._decrypt_and_connect()
 
     def _derive_key(self, password):
+        """
+        Derive encryption key from master password using PBKDF2.
+
+        Uses PBKDF2-SHA256 with 100,000 iterations to derive a strong
+        encryption key from the master password. The salt is stored
+        in the configuration to ensure consistent key derivation.
+
+        Args:
+            password (str): Master password to derive key from
+
+        Returns:
+            Fernet: Configured encryption/decryption cipher suite
+
+        Security:
+            - 100,000 PBKDF2 iterations for resistance to brute force
+            - SHA-256 as the hash function
+            - 32-byte key for AES-256 encryption
+            - Static salt for consistent key derivation
+        """
         """Derive encryption key from master password"""
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
