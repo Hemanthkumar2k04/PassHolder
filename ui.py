@@ -5,7 +5,6 @@ from rich.prompt import Prompt
 from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.theme import Theme
-from animation_frames import ANIMATION_FRAMES, FRAME_DURATION
 import time
 import os
 
@@ -29,19 +28,18 @@ class UI:
         self.history = []
 
     def loading_animation(self):
-        """Cross-platform ASCII animation for 1.5 seconds"""
-        # Clear screen
-        os.system("cls" if os.name == "nt" else "clear")
-
-        # Show each frame for the specified duration
-        for frame in ANIMATION_FRAMES:
-            os.system("cls" if os.name == "nt" else "clear")
-            print(frame)
-            time.sleep(FRAME_DURATION)
-        time.sleep(0.5)
-        # Clear screen after animation
-        os.system("cls" if os.name == "nt" else "clear")
-        self.console.print("[success]PassHolder is ready!")
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            task = progress.add_task("[info]Loading", total=None)
+            for i in range(1, 5):
+                progress.update(task, description=f"[info]Loading{'.' * i}")
+                time.sleep(0.25)
+            time.sleep(1)
+        panel = Panel(Text("Welcome to PassHolder!", style="title", justify="center"))
+        self.console.print(panel)
 
     def display_menu(self):
         menu_items = [
