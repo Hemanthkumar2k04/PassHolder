@@ -26,13 +26,19 @@ def check_python_version():
         print("   Please install a newer version of Python")
         sys.exit(1)
     print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor} detected")
-    
+
     # Check for externally managed environment
     if platform.system() == "Linux":
         try:
-            result = subprocess.run([sys.executable, "-m", "pip", "--version"], 
-                                  capture_output=True, text=True)
-            if result.returncode != 0 and "externally-managed-environment" in result.stderr:
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "--version"],
+                capture_output=True,
+                text=True,
+            )
+            if (
+                result.returncode != 0
+                and "externally-managed-environment" in result.stderr
+            ):
                 print("ℹ️  Externally managed Python environment detected")
                 print("   Will install packages to user directory if needed")
         except:
@@ -65,8 +71,9 @@ def install_packages(python_exe, script_dir):
     try:
         # Try to upgrade pip first
         subprocess.run(
-            [str(python_exe), "-m", "pip", "install", "--upgrade", "pip"], 
-            check=True, capture_output=True
+            [str(python_exe), "-m", "pip", "install", "--upgrade", "pip"],
+            check=True,
+            capture_output=True,
         )
         pip_upgraded = True
     except subprocess.CalledProcessError:
@@ -74,8 +81,9 @@ def install_packages(python_exe, script_dir):
         print("⚠️  System pip upgrade failed, trying user installation...")
         try:
             subprocess.run(
-                [str(python_exe), "-m", "pip", "install", "--user", "--upgrade", "pip"], 
-                check=True, capture_output=True
+                [str(python_exe), "-m", "pip", "install", "--user", "--upgrade", "pip"],
+                check=True,
+                capture_output=True,
             )
             pip_upgraded = True
         except subprocess.CalledProcessError:
@@ -87,25 +95,35 @@ def install_packages(python_exe, script_dir):
         # Try system-wide installation first
         subprocess.run(
             [str(python_exe), "-m", "pip", "install", "-r", str(requirements_file)],
-            check=True, capture_output=True
+            check=True,
+            capture_output=True,
         )
         print("✅ Packages installed globally")
         return
     except subprocess.CalledProcessError:
         pass
-    
+
     try:
         # If system installation fails, try user installation
         print("⚠️  System installation failed, installing to user directory...")
         subprocess.run(
-            [str(python_exe), "-m", "pip", "install", "--user", "-r", str(requirements_file)],
-            check=True, capture_output=True
+            [
+                str(python_exe),
+                "-m",
+                "pip",
+                "install",
+                "--user",
+                "-r",
+                str(requirements_file),
+            ],
+            check=True,
+            capture_output=True,
         )
         print("✅ Packages installed to user directory")
         return
     except subprocess.CalledProcessError:
         pass
-    
+
     # If both fail, provide helpful error message
     print("❌ Package installation failed!")
     print("")
