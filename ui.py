@@ -53,7 +53,7 @@ class UI:
         menu = Text(
             "\n".join(menu_items),
             style="info",
-            justify="left",
+            justify="full",
         )
         menu_panel = Panel(
             menu,
@@ -62,7 +62,6 @@ class UI:
             style="bold blue",
             height=10,
             padding=(1, 2),
-            width=self.terminal_width // 2,
         )
 
         self.console.print(menu_panel, justify="center")
