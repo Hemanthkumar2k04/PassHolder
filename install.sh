@@ -11,7 +11,7 @@ if ! command -v python3 &> /dev/null; then
     echo "❌ Error: Python 3 is not installed"
     echo "Please install Python 3.8+ and try again:"
     echo ""
-    echo "Ubuntu/Debian: sudo apt update && sudo apt install python3 python3-pip python3-venv"
+    echo "Ubuntu/Debian: sudo apt update && sudo apt install python3 python3-pip"
     echo "CentOS/RHEL:   sudo yum install python3 python3-pip"
     echo "macOS:         brew install python3"
     echo "Arch Linux:    sudo pacman -S python python-pip"

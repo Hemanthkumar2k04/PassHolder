@@ -1,10 +1,87 @@
+# PassHolder .gitignore
+# This file specifies intentionally untracked files that Git should ignore
+
 # Python-generated files
 __pycache__/
 *.py[oc]
+*.pyo
+*.pyd
+*.so
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
+*.egg
 
 # Virtual environments
-.venv
+.venv/
+venv/
+env/
+ENV/
+
+# Database files (user data - should never be committed)
+*.db
+*.db.enc
+*.sqlite
+*.sqlite3
+passwords.db*
+
+# Salt files
+*.salt
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS-specific files
+Thumbs.db
+Desktop.ini
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Test files
+.pytest_cache/
+.tox/
+
+# Documentation builds
+docs/_build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Package lock files (since we use requirements.txt)
+uv.lock
+poetry.lock
+Pipfile.lock
+
+# Generated wrapper scripts (will be created by installer)
+bin/

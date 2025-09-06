@@ -69,11 +69,14 @@ The program automatically detects:
 ## Installation Details
 
 The installer:
-1. ✅ Creates a Python virtual environment
-2. ✅ Installs all required packages
-3. ✅ Creates a `passholder` command wrapper
-4. ✅ Adds the command to your system PATH
-5. ✅ Configures shell profile files (bash/zsh)
+1. ✅ Installs packages globally (no virtual environment needed)
+2. ✅ Creates a `passholder` command wrapper
+3. ✅ Adds the command to your system PATH
+4. ✅ Configures shell profile files (bash/zsh)
+
+### Package Requirements
+- Python 3.8 or higher
+- Global pip installation
 
 ## Uninstallation
 

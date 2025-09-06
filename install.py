@@ -34,59 +34,35 @@ def get_script_dir():
 
 
 def create_virtual_environment(script_dir):
-    """Create virtual environment"""
-    venv_path = script_dir / ".venv"
-
-    print("🔧 Creating virtual environment...")
-
-    # On Linux, we might need to install python3-venv
-    if platform.system() == "Linux":
-        try:
-            # Try to create venv, if it fails, suggest installing python3-venv
-            subprocess.run(
-                [sys.executable, "-m", "venv", str(venv_path)],
-                check=True,
-                capture_output=True,
-            )
-        except subprocess.CalledProcessError:
-            print("⚠️  Virtual environment creation failed.")
-            print("   On Ubuntu/Debian, run: sudo apt install python3-venv")
-            print("   On CentOS/RHEL, run: sudo yum install python3-venv")
-            print("   Then run this installer again.")
-            sys.exit(1)
-    else:
-        subprocess.run([sys.executable, "-m", "venv", str(venv_path)], check=True)
-
-    print(f"✅ Virtual environment created at {venv_path}")
-    return venv_path
+    """Skip virtual environment creation for global installation"""
+    print("🔧 Using global Python installation...")
+    print("✅ Skipping virtual environment creation")
+    return None
 
 
 def get_python_executable(venv_path):
-    """Get the Python executable path from virtual environment"""
-    if platform.system() == "Windows":
-        return venv_path / "Scripts" / "python.exe"
-    else:
-        return venv_path / "bin" / "python"
+    """Get the Python executable path (global installation)"""
+    return sys.executable
 
 
 def install_packages(python_exe, script_dir):
-    """Install required packages"""
+    """Install required packages globally"""
     requirements_file = script_dir / "requirements.txt"
 
-    print("📦 Installing packages...")
+    print("📦 Installing packages globally...")
 
     # Upgrade pip first
     subprocess.run(
         [str(python_exe), "-m", "pip", "install", "--upgrade", "pip"], check=True
     )
 
-    # Install requirements
+    # Install requirements globally
     subprocess.run(
         [str(python_exe), "-m", "pip", "install", "-r", str(requirements_file)],
         check=True,
     )
 
-    print("✅ Packages installed successfully")
+    print("✅ Packages installed globally")
 
 
 def create_executable_wrapper(script_dir, venv_path):
@@ -224,10 +200,10 @@ def main():
     script_dir = get_script_dir()
     print(f"📁 Installing from: {script_dir}")
 
-    # Create virtual environment
+    # Skip virtual environment creation
     venv_path = create_virtual_environment(script_dir)
 
-    # Install packages
+    # Install packages globally
     python_exe = get_python_executable(venv_path)
     install_packages(python_exe, script_dir)
 
@@ -246,7 +222,7 @@ def main():
 
     print("\n" + "=" * 50)
     print("🎉 PassHolder installation completed!")
-    print("\nAfter restarting your terminal, you can use:")
+    print("\nPackages installed globally. You can now use:")
     print("   passholder add      # Add a new password")
     print("   passholder view     # View all passwords")
     print("   passholder --help   # Show all commands")
