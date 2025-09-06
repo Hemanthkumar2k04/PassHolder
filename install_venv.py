@@ -95,9 +95,7 @@ def main():
             if "alias passholder=" not in bashrc_content:
                 with bashrc_path.open("a") as f:
                     f.write(f"\n# PassHolder alias added by installer\n")
-                    f.write(
-                        f"alias passholder='{venv_path}  {script_dir / 'passholder.py'}'\n"
-                    )
+                    f.write(f"alias passholder='{wrapper_path}'\n")
                 print("✅ Added alias to ~/.bashrc")
             else:
                 print("✅ Alias already exists in ~/.bashrc")
