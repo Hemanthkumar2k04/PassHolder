@@ -253,11 +253,11 @@ class PassHolderCLI:
     def copy_password(self, args):
         """
         Copy password to clipboard with support for multiple service matches.
-        
+
         If multiple passwords exist for the same service name, displays a
         numbered list for user selection. Supports copying by service name,
         username, or specific ID.
-        
+
         Args:
             args: Parsed command arguments containing service, username, and id
         """
@@ -266,7 +266,7 @@ class PassHolderCLI:
         if self.db is None:
             self.console.print("[red]Database connection failed.[/red]")
             return
-            
+
         try:
             service = args.service
             username = getattr(args, "username", None)
@@ -286,53 +286,62 @@ class PassHolderCLI:
 
             # Search by service name only - handle multiple matches
             matching_passwords = self.db.get_matching_passwords(service)
-            
+
             if not matching_passwords:
-                self.console.print(f"[red]No passwords found for service '{service}'[/red]")
+                self.console.print(
+                    f"[red]No passwords found for service '{service}'[/red]"
+                )
                 return
-            
+
             if len(matching_passwords) == 1:
                 # Single match - copy directly
                 password_id = matching_passwords[0][0]
                 result = self.db.copy_password_by_id(password_id)
                 self.console.print(f"[green]✓ {result}[/green]")
                 return
-            
+
             # Multiple matches - display selection menu
-            self.console.print(f"[yellow]Multiple passwords found for '{service}':[/yellow]\n")
-            
+            self.console.print(
+                f"[yellow]Multiple passwords found for '{service}':[/yellow]\n"
+            )
+
             # Create and display selection table
             table = Table(show_header=True, header_style="bold magenta")
             table.add_column("Index", style="cyan", width=6)
             table.add_column("Service", style="green")
             table.add_column("Username", style="blue")
             table.add_column("Notes", style="yellow")
-            
-            for idx, (password_id, svc, username_val, password, notes) in enumerate(matching_passwords, 1):
+
+            for idx, (password_id, svc, username_val, password, notes) in enumerate(
+                matching_passwords, 1
+            ):
                 # Truncate long values for display
-                display_username = username_val[:20] + "..." if username_val and len(username_val) > 20 else (username_val or "")
-                display_notes = notes[:30] + "..." if notes and len(notes) > 30 else (notes or "")
-                
-                table.add_row(
-                    str(idx),
-                    svc,
-                    display_username,
-                    display_notes
+                display_username = (
+                    username_val[:20] + "..."
+                    if username_val and len(username_val) > 20
+                    else (username_val or "")
                 )
-            
+                display_notes = (
+                    notes[:30] + "..." if notes and len(notes) > 30 else (notes or "")
+                )
+
+                table.add_row(str(idx), svc, display_username, display_notes)
+
             self.console.print(table)
-            
+
             # Get user selection
-            self.console.print(f"\n[cyan]Please select which password to copy (1-{len(matching_passwords)}) or 'q' to quit:[/cyan]")
-            
+            self.console.print(
+                f"\n[cyan]Please select which password to copy (1-{len(matching_passwords)}) or 'q' to quit:[/cyan]"
+            )
+
             while True:
                 try:
                     choice = input("Selection: ").strip().lower()
-                    
-                    if choice == 'q' or choice == 'quit':
+
+                    if choice == "q" or choice == "quit":
                         self.console.print("[yellow]Copy operation cancelled.[/yellow]")
                         return
-                    
+
                     selection_idx = int(choice)
                     if 1 <= selection_idx <= len(matching_passwords):
                         # Valid selection - copy the chosen password
@@ -342,10 +351,14 @@ class PassHolderCLI:
                         self.console.print(f"[green]✓ {result}[/green]")
                         return
                     else:
-                        self.console.print(f"[red]Please enter a number between 1 and {len(matching_passwords)}[/red]")
-                        
+                        self.console.print(
+                            f"[red]Please enter a number between 1 and {len(matching_passwords)}[/red]"
+                        )
+
                 except ValueError:
-                    self.console.print("[red]Please enter a valid number or 'q' to quit[/red]")
+                    self.console.print(
+                        "[red]Please enter a valid number or 'q' to quit[/red]"
+                    )
                 except KeyboardInterrupt:
                     self.console.print("\n[yellow]Copy operation cancelled.[/yellow]")
                     return

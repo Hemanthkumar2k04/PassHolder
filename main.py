@@ -144,8 +144,14 @@ def main_cli():
     remove_parser.add_argument("-i", "--id", type=int, help="Password ID")
 
     # Copy password command - Enhanced with multiple selection support
-    copy_parser = subparsers.add_parser("copy", help="Copy password to clipboard (supports multiple matches)")
-    copy_parser.add_argument("service", nargs="?", help="Service name (shows selection menu if multiple matches)")
+    copy_parser = subparsers.add_parser(
+        "copy", help="Copy password to clipboard (supports multiple matches)"
+    )
+    copy_parser.add_argument(
+        "service",
+        nargs="?",
+        help="Service name (shows selection menu if multiple matches)",
+    )
     copy_parser.add_argument("-u", "--username", help="Username for exact match")
     copy_parser.add_argument("-i", "--id", type=int, help="Password ID for direct copy")
 
