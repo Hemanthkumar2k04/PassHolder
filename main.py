@@ -19,7 +19,7 @@ Security:
 - PBKDF2 key derivation with 100,000 iterations
 - Local-only storage, no network connections
 
-Author: PassHolder Team
+Author: Hemanthkumar K
 License: Open Source
 """
 
